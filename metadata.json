@@ -1,0 +1,5 @@
+{
+  "name": "Chaturanga Chess",
+  "description": "An ancient chess game of Chaturanga. The rules include unique pieces like the Elephant and General. The game features classic chess mechanics like check and checkmate, with pawn promotion to General. No castling is allowed.",
+  "requestFramePermissions": []
+}
