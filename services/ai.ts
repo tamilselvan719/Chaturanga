@@ -13,8 +13,12 @@ const pieceValues: { [key in PieceType]: number } = {
 
 const evaluateBoard = (board: BoardState): number => {
     if (gameLogic.isCheckmate(board, Player.BLACK)) return Infinity;
+    if (gameLogic.isStalemate(board, Player.BLACK)) return Infinity;
+    if (gameLogic.isBareKing(board, Player.BLACK)) return Infinity;
+
     if (gameLogic.isCheckmate(board, Player.WHITE)) return -Infinity;
-    if (gameLogic.isStalemate(board, Player.WHITE) || gameLogic.isStalemate(board, Player.BLACK)) return 0;
+    if (gameLogic.isStalemate(board, Player.WHITE)) return -Infinity;
+    if (gameLogic.isBareKing(board, Player.WHITE)) return -Infinity;
 
     let score = 0;
     for (let r = 0; r < 8; r++) {
@@ -62,12 +66,21 @@ const makeMove = (board: BoardState, from: Position, to: Position): BoardState =
 };
 
 const minimax = (board: BoardState, depth: number, alpha: number, beta: number, isMaximizingPlayer: boolean): number => {
-    if (depth === 0 || gameLogic.isCheckmate(board, Player.WHITE) || gameLogic.isCheckmate(board, Player.BLACK) || gameLogic.isStalemate(board, Player.WHITE) || gameLogic.isStalemate(board, Player.BLACK)) {
+    if (depth === 0) {
         return evaluateBoard(board);
+    }
+    
+    const terminalValue = evaluateBoard(board);
+    if (terminalValue === Infinity || terminalValue === -Infinity) {
+        return terminalValue;
     }
 
     const player = isMaximizingPlayer ? Player.WHITE : Player.BLACK;
     const allMoves = getAllMoves(board, player);
+
+    if (allMoves.length === 0) {
+        return evaluateBoard(board);
+    }
 
     if (isMaximizingPlayer) {
         let maxEval = -Infinity;
@@ -92,26 +105,33 @@ const minimax = (board: BoardState, depth: number, alpha: number, beta: number, 
     }
 };
 
-export const findBestMove = (board: BoardState, depth: number): { from: Position; to: Position } | null => {
-    const aiPlayer = Player.BLACK;
-    let bestMove: { from: Position, to: Position } | null = null;
-    let bestValue = Infinity;
-
+export const findBestMove = (board: BoardState, depth: number, aiPlayer: Player): { from: Position; to: Position } | null => {
     const allMoves = getAllMoves(board, aiPlayer);
 
     if (allMoves.length === 0) {
         return null;
     }
 
-    // Shuffle for variety
     allMoves.sort(() => Math.random() - 0.5);
+
+    let bestMove: { from: Position, to: Position } = allMoves[0];
+    const isMaximizingPlayer = aiPlayer === Player.WHITE;
+    let bestValue = isMaximizingPlayer ? -Infinity : Infinity;
 
     for (const move of allMoves) {
         const newBoard = makeMove(board, move.from, move.to);
-        const boardValue = minimax(newBoard, depth - 1, -Infinity, Infinity, true);
-        if (boardValue < bestValue) {
-            bestValue = boardValue;
-            bestMove = move;
+        const boardValue = minimax(newBoard, depth - 1, -Infinity, Infinity, !isMaximizingPlayer);
+
+        if (isMaximizingPlayer) {
+            if (boardValue > bestValue) {
+                bestValue = boardValue;
+                bestMove = move;
+            }
+        } else { // Minimizing player (Black)
+            if (boardValue < bestValue) {
+                bestValue = boardValue;
+                bestMove = move;
+            }
         }
     }
     return bestMove;

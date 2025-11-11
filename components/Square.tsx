@@ -13,7 +13,7 @@ interface SquareProps {
 }
 
 const Square: React.FC<SquareProps> = ({ piece, position, isLight, isSelected, isPossibleMove, isKingInCheck, onClick }) => {
-  const bgClass = isLight ? 'bg-[#DEB887]' : 'bg-[#8B4513]';
+  const bgClass = isLight ? 'bg-[#f0d9b5]' : 'bg-[#b58863]';
   const selectedClass = isSelected ? 'bg-yellow-400/70' : '';
   const checkClass = isKingInCheck ? 'bg-red-500/70' : '';
   

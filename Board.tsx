@@ -1,7 +1,7 @@
-
+// Fix: Replaced invalid content with component definition and adjusted import paths.
 import React from 'react';
-import { BoardState, Position } from '../types';
-import Square from './Square';
+import { BoardState, Position } from './types';
+import Square from './components/Square';
 
 interface BoardProps {
   board: BoardState;
