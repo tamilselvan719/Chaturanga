@@ -104,6 +104,16 @@ const App: React.FC = () => {
         if (timerRef.current) clearInterval(timerRef.current);
     };
 
+    const handleResign = useCallback(() => {
+        if (gameStatus.includes('wins') || gameStatus.includes('Draw')) return;
+
+        const winner = currentPlayer === Player.WHITE ? Player.BLACK : Player.WHITE;
+        setGameStatus(`${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} resigns. ${winner.charAt(0).toUpperCase() + winner.slice(1)} wins!`);
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+    }, [currentPlayer, gameStatus]);
+
     const updateGameStatus = useCallback((boardState: BoardState, player: Player) => {
         const opponent = player === Player.WHITE ? Player.BLACK : Player.WHITE;
         if (gameLogic.isCheckmate(boardState, opponent)) {
@@ -293,6 +303,7 @@ const App: React.FC = () => {
                         capturedPieces={capturedPieces}
                         onReset={resetGame}
                         onGoToMainMenu={goToMainMenu}
+                        onResign={handleResign}
                     />
                 </div>
                 
@@ -305,7 +316,7 @@ const App: React.FC = () => {
                         isActive={currentPlayer === bottomPlayer}
                         capturedPieces={capturedPieces[topPlayer]}
                     />
-                    <ActionPanel gameStatus={gameStatus} onReset={resetGame} onGoToMainMenu={goToMainMenu} />
+                    <ActionPanel gameStatus={gameStatus} onReset={resetGame} onGoToMainMenu={goToMainMenu} onResign={handleResign} />
                 </div>
             </div>
         </main>

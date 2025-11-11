@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { GameSettings, Player, CapturedPieces } from '../types';
 import PlayerInfo from './PlayerInfo';
@@ -11,6 +12,7 @@ interface SidePanelProps {
     capturedPieces: CapturedPieces;
     onReset: () => void;
     onGoToMainMenu: () => void;
+    onResign: () => void;
 }
 
 const SidePanel: React.FC<SidePanelProps> = ({
@@ -20,7 +22,8 @@ const SidePanel: React.FC<SidePanelProps> = ({
     gameStatus,
     capturedPieces,
     onReset,
-    onGoToMainMenu
+    onGoToMainMenu,
+    onResign,
 }) => {
     const { playerColor, aiColor } = gameSettings;
     if (!playerColor || !aiColor) return null;
@@ -70,6 +73,14 @@ const SidePanel: React.FC<SidePanelProps> = ({
                     Main Menu
                 </button>
             </div>
+            {!isGameOver && (
+                <button
+                    onClick={onResign}
+                    className="w-full mt-3 px-4 py-2 bg-red-700 text-white font-semibold rounded-md hover:bg-red-800 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                    Resign
+                </button>
+            )}
         </div>
     );
 };
