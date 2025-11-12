@@ -56,7 +56,6 @@ const App: React.FC = () => {
 
     // Game Setup
     const setupNewGame = useCallback((settings: Omit<GameSettings, 'playerColor' | 'aiColor' | 'aiDepth'>) => {
-        soundService.unlockAudio(); // Unlock audio on first user interaction.
         let playerColor: Player;
         if (settings.playerChoice === 'random') {
             playerColor = Math.random() < 0.5 ? Player.WHITE : Player.BLACK;
@@ -160,8 +159,14 @@ const App: React.FC = () => {
         const pieceToMove = board[from.row][from.col];
         if (!pieceToMove) return;
 
+        const captured = board[to.row][to.col];
+        if (captured) {
+            soundService.playSound('capture');
+        } else {
+            soundService.playSound('move');
+        }
+
         const newBoard = board.map(r => [...r]);
-        const captured = newBoard[to.row][to.col];
 
         // Handle pawn promotion
         if (pieceToMove.type === PieceType.PAWN && (to.row === 0 || to.row === 7)) {
@@ -171,18 +176,6 @@ const App: React.FC = () => {
         }
 
         newBoard[from.row][from.col] = null;
-
-        const opponent = currentPlayer === Player.WHITE ? Player.BLACK : Player.WHITE;
-        const isCheck = gameLogic.isKingInCheck(newBoard, opponent);
-        const isGameOver = gameLogic.isCheckmate(newBoard, opponent) || gameLogic.isStalemate(newBoard, opponent) || gameLogic.isBareKing(newBoard, opponent);
-
-        if (!isGameOver && !isCheck) {
-            if (captured) {
-                soundService.playSound('capture');
-            } else {
-                soundService.playSound('move');
-            }
-        }
 
         if (captured) {
             const newCapturedPieces = { ...capturedPieces };

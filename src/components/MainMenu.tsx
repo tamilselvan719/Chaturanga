@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { GameSettings, PlayerColorChoice, Difficulty, TimeOption, IncrementOption } from '../types';
+import { unlockAudio } from '../services/soundService';
 
 interface MainMenuProps {
   onStartGame: (settings: Omit<GameSettings, 'playerColor' | 'aiColor' | 'aiDepth'>) => void;
@@ -14,6 +15,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onShowHelp }) => {
   const [increment, setIncrement] = useState<IncrementOption>(5);
 
   const handleStart = () => {
+    unlockAudio();
     onStartGame({ playerChoice, difficulty, time, increment });
   };
   
