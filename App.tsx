@@ -15,6 +15,7 @@ import { INITIAL_BOARD } from './constants';
 import * as gameLogic from './services/gameLogic';
 import * as ai from './services/ai';
 import * as notation from './services/notation';
+import * as soundService from './services/soundService';
 import Board from './components/Board';
 import MainMenu from './components/MainMenu';
 import HelpScreen from './components/HelpScreen';
@@ -115,26 +116,31 @@ const App: React.FC = () => {
         if (timerRef.current) {
             clearInterval(timerRef.current);
         }
+        soundService.playSound('game-over');
     }, [currentPlayer, gameStatus]);
 
     const updateGameStatus = useCallback((boardState: BoardState, player: Player) => {
         const opponent = player === Player.WHITE ? Player.BLACK : Player.WHITE;
         if (gameLogic.isCheckmate(boardState, opponent)) {
             setGameStatus(`Checkmate! ${player.charAt(0).toUpperCase() + player.slice(1)} wins!`);
+            soundService.playSound('game-over');
             return true;
         }
         if (gameLogic.isStalemate(boardState, opponent)) {
             setGameStatus(`Stalemate! ${player.charAt(0).toUpperCase() + player.slice(1)} wins!`);
+            soundService.playSound('game-over');
             return true;
         }
         if (gameLogic.isBareKing(boardState, opponent)) {
             setGameStatus(`Bare King! ${player.charAt(0).toUpperCase() + player.slice(1)} wins!`);
+            soundService.playSound('game-over');
             return true;
         }
         const boardString = JSON.stringify(boardState);
         const occurrences = history.filter(h => h === boardString).length;
         if (occurrences >= 2) { // Will be 3 on next move
             setGameStatus('Draw by Three-Fold Repetition!');
+            soundService.playSound('game-over');
             return true;
         }
         
@@ -142,6 +148,7 @@ const App: React.FC = () => {
         if (kingPos && gameLogic.isKingInCheck(boardState, opponent)) {
             setKingInCheckPos(kingPos);
             setGameStatus(`${opponent.charAt(0).toUpperCase() + opponent.slice(1)} is in check`);
+            soundService.playSound('check');
         } else {
             setKingInCheckPos(null);
             setGameStatus(`${opponent.charAt(0).toUpperCase() + opponent.slice(1)}'s turn to move`);
@@ -156,12 +163,6 @@ const App: React.FC = () => {
         const newBoard = board.map(r => [...r]);
         const captured = newBoard[to.row][to.col];
 
-        if (captured) {
-            const newCapturedPieces = { ...capturedPieces };
-            newCapturedPieces[pieceToMove.player].push(captured);
-            setCapturedPieces(newCapturedPieces);
-        }
-
         // Handle pawn promotion
         if (pieceToMove.type === PieceType.PAWN && (to.row === 0 || to.row === 7)) {
             newBoard[to.row][to.col] = { ...pieceToMove, type: PieceType.GENERAL };
@@ -170,6 +171,25 @@ const App: React.FC = () => {
         }
         
         newBoard[from.row][from.col] = null;
+        
+        const opponent = currentPlayer === Player.WHITE ? Player.BLACK : Player.WHITE;
+        const isCheck = gameLogic.isKingInCheck(newBoard, opponent);
+        const isGameOver = gameLogic.isCheckmate(newBoard, opponent) || gameLogic.isStalemate(newBoard, opponent) || gameLogic.isBareKing(newBoard, opponent);
+
+        if (!isGameOver && !isCheck) {
+            if (captured) {
+                soundService.playSound('capture');
+            } else {
+                soundService.playSound('move');
+            }
+        }
+        
+        if (captured) {
+            const newCapturedPieces = { ...capturedPieces };
+            newCapturedPieces[pieceToMove.player].push(captured);
+            setCapturedPieces(newCapturedPieces);
+        }
+
 
         const moveNotation = notation.getMoveNotation(from, to, pieceToMove, captured, newBoard);
         setMoveHistory(prev => [...prev, moveNotation]);
@@ -180,9 +200,9 @@ const App: React.FC = () => {
         
         const nextPlayer = currentPlayer === Player.WHITE ? Player.BLACK : Player.WHITE;
         
-        const isGameOver = updateGameStatus(newBoard, currentPlayer);
+        const isGameOverAfterUpdate = updateGameStatus(newBoard, currentPlayer);
 
-        if (!isGameOver) {
+        if (!isGameOverAfterUpdate) {
             setCurrentPlayer(nextPlayer);
              // Add increment if applicable
             if (gameSettings && gameSettings.time !== 'unlimited') {
@@ -243,6 +263,7 @@ const App: React.FC = () => {
                     if (timerRef.current) clearInterval(timerRef.current);
                     const winner = currentPlayer === Player.WHITE ? Player.BLACK : Player.WHITE;
                     setGameStatus(`Time out! ${winner.charAt(0).toUpperCase() + winner.slice(1)} wins!`);
+                    soundService.playSound('game-over');
                     return { ...prevTimers, [currentPlayer]: 0 };
                 }
                 return { ...prevTimers, [currentPlayer]: newTime };
