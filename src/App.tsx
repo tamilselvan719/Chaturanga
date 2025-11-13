@@ -368,7 +368,7 @@ const App: React.FC = () => {
                         isActive={currentPlayer === bottomPlayer}
                         capturedPieces={capturedPieces[topPlayer]}
                     />
-                    <ActionPanel gameStatus={gameStatus} onReset={resetGame} onGoToMainMenu={goToMainMenu} onResign={openResignConfirm} />
+                    <ActionPanel gameStatus={gameStatus} onReset={resetGame} onGoToMainMenu={goToMainMenu} onResign={openResignConfirm} moveHistory={moveHistory} />
                 </div>
             </div>
         </main>
