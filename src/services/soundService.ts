@@ -2,10 +2,10 @@
 type SoundType = 'move' | 'capture' | 'check' | 'game-over';
 
 const soundsData: { [key in SoundType]: string } = {
-    move: '/assets/move.wav',
-    capture: '/assets/capture.wav',
-    check: '/assets/check.wav',
-    'game-over': '/assets/game-over.wav'
+    move: '/sounds/move.wav',
+    capture: '/sounds/capture.wav',
+    check: '/sounds/check.wav',
+    'game-over': '/sounds/game-over.wav'
 };
 
 const audioElements: { [key in SoundType]?: HTMLAudioElement } = {};

@@ -19,7 +19,7 @@ import Board from './components/Board';
 import MainMenu from './components/MainMenu';
 import HelpScreen from './components/HelpScreen';
 import SidePanel from './components/SidePanel';
-import GameOverOverlay from './components/GameOverOverlay';
+import OverlayModal from './components/OverlayModal';
 import MobileInfoBar from './components/MobileInfoBar';
 import ActionPanel from './components/ActionPanel';
 
@@ -40,6 +40,7 @@ const App: React.FC = () => {
     const [capturedPieces, setCapturedPieces] = useState<CapturedPieces>({ [Player.WHITE]: [], [Player.BLACK]: [] });
     const [history, setHistory] = useState<string[]>([]);
     const [moveHistory, setMoveHistory] = useState<string[]>([]);
+    const [isResignConfirmOpen, setIsResignConfirmOpen] = useState(false);
 
     // Timers
     const [timers, setTimers] = useState<{ [key in Player]: number }>({ [Player.WHITE]: Infinity, [Player.BLACK]: Infinity });
@@ -107,7 +108,9 @@ const App: React.FC = () => {
         if (timerRef.current) clearInterval(timerRef.current);
     };
 
-    const handleResign = useCallback(() => {
+    const openResignConfirm = () => setIsResignConfirmOpen(true);
+    const cancelResign = () => setIsResignConfirmOpen(false);
+    const confirmResign = useCallback(() => {
         if (gameStatus.includes('wins') || gameStatus.includes('Draw')) return;
 
         const winner = currentPlayer === Player.WHITE ? Player.BLACK : Player.WHITE;
@@ -116,6 +119,7 @@ const App: React.FC = () => {
             clearInterval(timerRef.current);
         }
         soundService.playSound('game-over');
+        setIsResignConfirmOpen(false);
     }, [currentPlayer, gameStatus]);
 
     const updateGameStatus = useCallback((boardState: BoardState, player: Player) => {
@@ -328,7 +332,16 @@ const App: React.FC = () => {
                         kingInCheckPos={kingInCheckPos}
                         isFlipped={isPlayerBlack}
                     />
-                    {isGameOver && <GameOverOverlay gameStatus={gameStatus} onReset={resetGame} onGoToMainMenu={goToMainMenu} />}
+                    {isGameOver && <OverlayModal gameStatus={gameStatus} onReset={resetGame} onGoToMainMenu={goToMainMenu} />}
+                    {isResignConfirmOpen && (
+                        <OverlayModal
+                            gameStatus="Are you sure you want to resign?"
+                            onReset={confirmResign}
+                            onCancel={cancelResign}
+                            confirmText="Yes, Resign"
+                            cancelText="No, Continue"
+                        />
+                    )}
                 </div>
 
                 {/* --- Desktop Side Panel --- */}
@@ -342,7 +355,7 @@ const App: React.FC = () => {
                         moveHistory={moveHistory}
                         onReset={resetGame}
                         onGoToMainMenu={goToMainMenu}
-                        onResign={handleResign}
+                        onResign={openResignConfirm}
                     />
                 </div>
 
@@ -355,7 +368,7 @@ const App: React.FC = () => {
                         isActive={currentPlayer === bottomPlayer}
                         capturedPieces={capturedPieces[topPlayer]}
                     />
-                    <ActionPanel gameStatus={gameStatus} onReset={resetGame} onGoToMainMenu={goToMainMenu} onResign={handleResign} />
+                    <ActionPanel gameStatus={gameStatus} onReset={resetGame} onGoToMainMenu={goToMainMenu} onResign={openResignConfirm} />
                 </div>
             </div>
         </main>

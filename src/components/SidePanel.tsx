@@ -61,28 +61,25 @@ const SidePanel: React.FC<SidePanelProps> = ({
                 </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-2">
-                <button
-                    onClick={onReset}
-                    className="w-full px-4 py-2 bg-slate-700 text-white font-semibold rounded-md hover:bg-slate-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                >
-                    New Game
-                </button>
-                 <button
-                    onClick={onGoToMainMenu}
-                    className="w-full px-4 py-2 bg-slate-700 text-white font-semibold rounded-md hover:bg-slate-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                >
-                    Main Menu
-                </button>
+            <div className="grid grid-cols-1 gap-3 mt-2">
+                {moveHistory.length === 0 ? (
+                    <button
+                        onClick={onGoToMainMenu}
+                        className="w-full px-4 py-2 bg-slate-700 text-white font-semibold rounded-md hover:bg-slate-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    >
+                        Main Menu
+                    </button>
+                ) : (
+                    !isGameOver && (
+                        <button
+                            onClick={onResign}
+                            className="w-full px-4 py-2 bg-red-700 text-white font-semibold rounded-md hover:bg-red-800 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        >
+                            Resign
+                        </button>
+                    )
+                )}
             </div>
-            {!isGameOver && (
-                <button
-                    onClick={onResign}
-                    className="w-full mt-3 px-4 py-2 bg-red-700 text-white font-semibold rounded-md hover:bg-red-800 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                    Resign
-                </button>
-            )}
         </div>
     );
 };
