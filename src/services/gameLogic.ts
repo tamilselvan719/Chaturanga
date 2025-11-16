@@ -205,21 +205,3 @@ export const isCheckmate = (board: BoardState, player: Player): boolean => {
 export const isStalemate = (board: BoardState, player: Player): boolean => {
     return !isKingInCheck(board, player) && !hasAnyValidMoves(board, player);
 };
-
-export const isBareKing = (board: BoardState, player: Player): boolean => {
-  let pieceCount = 0;
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const piece = board[r][c];
-      if (piece && piece.player === player) {
-        pieceCount++;
-        // If we find more than one piece, it's not a bare king
-        if (pieceCount > 1) {
-          return false;
-        }
-      }
-    }
-  }
-  // If piece count is 1, it must be the king. If 0, the king was captured (checkmate already handled this).
-  return pieceCount === 1;
-};

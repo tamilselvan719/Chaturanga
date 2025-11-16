@@ -3,22 +3,20 @@ import { BoardState, Piece, PieceType, Player, Position } from '../types';
 import * as gameLogic from './gameLogic';
 
 const pieceValues: { [key in PieceType]: number } = {
-  [PieceType.PAWN]: 1,
-  [PieceType.HORSE]: 3,
-  [PieceType.CHARIOT]: 4,
-  [PieceType.ELEPHANT]: 5,
-  [PieceType.GENERAL]: 6,
-  [PieceType.KING]: 1000,
+    [PieceType.PAWN]: 1,
+    [PieceType.HORSE]: 3,
+    [PieceType.ELEPHANT]: 4,
+    [PieceType.CHARIOT]: 5,
+    [PieceType.GENERAL]: 6,
+    [PieceType.KING]: 0,
 };
 
 const evaluateBoard = (board: BoardState): number => {
     if (gameLogic.isCheckmate(board, Player.BLACK)) return Infinity;
     if (gameLogic.isStalemate(board, Player.BLACK)) return Infinity;
-    if (gameLogic.isBareKing(board, Player.BLACK)) return Infinity;
 
     if (gameLogic.isCheckmate(board, Player.WHITE)) return -Infinity;
     if (gameLogic.isStalemate(board, Player.WHITE)) return -Infinity;
-    if (gameLogic.isBareKing(board, Player.WHITE)) return -Infinity;
 
     let score = 0;
     for (let r = 0; r < 8; r++) {
@@ -69,7 +67,7 @@ const minimax = (board: BoardState, depth: number, alpha: number, beta: number, 
     if (depth === 0) {
         return evaluateBoard(board);
     }
-    
+
     const terminalValue = evaluateBoard(board);
     if (terminalValue === Infinity || terminalValue === -Infinity) {
         return terminalValue;

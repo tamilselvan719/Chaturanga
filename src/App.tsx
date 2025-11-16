@@ -5,7 +5,6 @@ import {
     Position,
     GameState,
     GameSettings,
-    Piece,
     CapturedPieces,
     Difficulty,
     PieceType,
@@ -131,11 +130,6 @@ const App: React.FC = () => {
         }
         if (gameLogic.isStalemate(boardState, opponent)) {
             setGameStatus(`Stalemate! ${player.charAt(0).toUpperCase() + player.slice(1)} wins!`);
-            soundService.playSound('game-over');
-            return true;
-        }
-        if (gameLogic.isBareKing(boardState, opponent)) {
-            setGameStatus(`Bare King! ${player.charAt(0).toUpperCase() + player.slice(1)} wins!`);
             soundService.playSound('game-over');
             return true;
         }
