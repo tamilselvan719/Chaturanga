@@ -22,27 +22,48 @@ import OverlayModal from './components/OverlayModal';
 import MobileInfoBar from './components/MobileInfoBar';
 import ActionPanel from './components/ActionPanel';
 
+const SAVED_GAME_KEY = 'chaturanga_game_state';
+
+const loadInitialState = () => {
+    const savedGame = localStorage.getItem(SAVED_GAME_KEY);
+    if (savedGame) {
+        try {
+            const loadedState = JSON.parse(savedGame);
+            // Basic validation
+            if (loadedState.gameState === 'playing' && loadedState.board && loadedState.currentPlayer) {
+                return loadedState;
+            }
+        } catch (error) {
+            console.error("Failed to parse saved game:", error);
+            localStorage.removeItem(SAVED_GAME_KEY);
+        }
+    }
+    return null;
+};
+
 const App: React.FC = () => {
+    const initialData = loadInitialState();
+
     // Game State
-    const [gameState, setGameState] = useState<GameState>('menu');
-    const [gameSettings, setGameSettings] = useState<GameSettings | null>(null);
+    const [gameState, setGameState] = useState<GameState>(initialData?.gameState || 'menu');
+    const [gameSettings, setGameSettings] = useState<GameSettings | null>(initialData?.gameSettings || null);
 
     // Board State
-    const [board, setBoard] = useState<BoardState>(INITIAL_BOARD);
-    const [currentPlayer, setCurrentPlayer] = useState<Player>(Player.WHITE);
+    const [board, setBoard] = useState<BoardState>(initialData?.board || INITIAL_BOARD);
+    const [currentPlayer, setCurrentPlayer] = useState<Player>(initialData?.currentPlayer || Player.WHITE);
     const [selectedPiece, setSelectedPiece] = useState<Position | null>(null);
     const [validMoves, setValidMoves] = useState<Position[]>([]);
-    const [kingInCheckPos, setKingInCheckPos] = useState<Position | null>(null);
+    const [kingInCheckPos, setKingInCheckPos] = useState<Position | null>(initialData?.kingInCheckPos || null);
 
     // Game Info
-    const [gameStatus, setGameStatus] = useState<string>("White's turn to move");
-    const [capturedPieces, setCapturedPieces] = useState<CapturedPieces>({ [Player.WHITE]: [], [Player.BLACK]: [] });
-    const [history, setHistory] = useState<string[]>([]);
-    const [moveHistory, setMoveHistory] = useState<string[]>([]);
+    const [gameStatus, setGameStatus] = useState<string>(initialData?.gameStatus || "White's turn to move");
+    const [capturedPieces, setCapturedPieces] = useState<CapturedPieces>(initialData?.capturedPieces || { [Player.WHITE]: [], [Player.BLACK]: [] });
+    const [history, setHistory] = useState<string[]>(initialData?.history || [JSON.stringify(INITIAL_BOARD)]);
+    const [moveHistory, setMoveHistory] = useState<string[]>(initialData?.moveHistory || []);
     const [isResignConfirmOpen, setIsResignConfirmOpen] = useState(false);
 
     // Timers
-    const [timers, setTimers] = useState<{ [key in Player]: number }>({ [Player.WHITE]: Infinity, [Player.BLACK]: Infinity });
+    const [timers, setTimers] = useState<{ [key in Player]: number }>(initialData?.timers || { [Player.WHITE]: Infinity, [Player.BLACK]: Infinity });
     const timerRef = useRef<number | null>(null);
 
     const difficultyToDepth = (difficulty: Difficulty): number => {
@@ -283,6 +304,41 @@ const App: React.FC = () => {
         };
     }, [currentPlayer, gameState, gameSettings, gameStatus, moveHistory]);
 
+    const isGameOver = gameStatus.includes('wins') || gameStatus.includes('Draw');
+
+    // Effect to save game state to localStorage
+    useEffect(() => {
+        if (gameState === 'playing' && !isGameOver) {
+            const stateToSave = {
+                gameState,
+                gameSettings,
+                board,
+                currentPlayer,
+                kingInCheckPos,
+                gameStatus,
+                capturedPieces,
+                history,
+                moveHistory,
+                timers,
+            };
+            localStorage.setItem(SAVED_GAME_KEY, JSON.stringify(stateToSave));
+        } else {
+            localStorage.removeItem(SAVED_GAME_KEY);
+        }
+    }, [
+        gameState,
+        gameSettings,
+        board,
+        currentPlayer,
+        kingInCheckPos,
+        gameStatus,
+        capturedPieces,
+        history,
+        moveHistory,
+        timers,
+        isGameOver
+    ]);
+
     // Main render logic
     if (gameState === 'menu') {
         return <MainMenu onStartGame={setupNewGame} onShowHelp={() => setGameState('help')} />;
@@ -296,7 +352,6 @@ const App: React.FC = () => {
         return <div>Loading...</div>;
     }
 
-    const isGameOver = gameStatus.includes('wins') || gameStatus.includes('Draw');
     const isPlayerBlack = gameSettings.playerColor === Player.BLACK;
     const topPlayer = isPlayerBlack ? Player.WHITE : Player.BLACK;
     const bottomPlayer = isPlayerBlack ? Player.BLACK : Player.WHITE;
