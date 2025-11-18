@@ -30,9 +30,11 @@ export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 export type TimeOption = 5 | 10 | 30 | 'unlimited';
 export type IncrementOption = 1 | 5 | 10;
 export type GameState = 'menu' | 'playing' | 'help';
+export type GameMode = 'player-vs-ai' | 'ai-vs-ai';
 
 export interface GameSettings {
-  playerChoice: PlayerColorChoice;
+  gameMode: GameMode;
+  playerChoice?: PlayerColorChoice;
   time: TimeOption;
   increment: IncrementOption;
   difficulty: Difficulty;

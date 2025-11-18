@@ -4,7 +4,7 @@ import React from 'react';
 interface ActionPanelProps {
     gameStatus: string;
     onGoToMainMenu: () => void;
-    onResign: () => void;
+    onResign?: () => void;
     showResignButton: boolean;
 }
 

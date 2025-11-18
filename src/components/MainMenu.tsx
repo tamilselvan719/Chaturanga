@@ -6,9 +6,10 @@ import { unlockAudio } from '../services/soundService';
 interface MainMenuProps {
   onStartGame: (settings: Omit<GameSettings, 'playerColor' | 'aiColor' | 'aiDepth'>) => void;
   onShowHelp: () => void;
+  onWatchAiPlay: () => void;
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onShowHelp }) => {
+const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onShowHelp, onWatchAiPlay }) => {
   const [initialSettings] = useState(() => {
     try {
       const savedSettings = localStorage.getItem('chaturangaSettings');
@@ -48,8 +49,13 @@ const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onShowHelp }) => {
 
   const handleStart = () => {
     unlockAudio();
-    onStartGame({ playerChoice, difficulty, time, increment });
+    onStartGame({ gameMode: 'player-vs-ai', playerChoice, difficulty, time, increment });
   };
+
+  const handleWatchAi = () => {
+    unlockAudio();
+    onWatchAiPlay();
+  }
   
   const SettingRow: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
     <div className="flex justify-between items-center w-full">
@@ -110,6 +116,9 @@ const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onShowHelp }) => {
         <div className="flex flex-col space-y-4">
            <button onClick={handleStart} className="w-full px-6 py-3 bg-amber-600 text-white font-bold text-xl rounded-lg hover:bg-amber-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-amber-400">
              Start Game
+           </button>
+           <button onClick={handleWatchAi} className="w-full px-6 py-2 bg-sky-700 text-white font-semibold rounded-lg hover:bg-sky-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500">
+             Watch AI Play
            </button>
             <button onClick={onShowHelp} className="w-full px-6 py-2 bg-slate-700 text-white font-semibold rounded-lg hover:bg-slate-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500">
              How to Play
