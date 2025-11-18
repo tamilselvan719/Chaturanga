@@ -142,14 +142,14 @@ const App: React.FC = () => {
         setIsResignConfirmOpen(false);
     }, [currentPlayer, gameStatus]);
 
-    const updateGameStatus = useCallback((boardState: BoardState, player: Player) => {
+    const updateGameStatus = useCallback(async (boardState: BoardState, player: Player) => {
         const opponent = player === Player.WHITE ? Player.BLACK : Player.WHITE;
-        if (gameLogic.isCheckmate(boardState, opponent)) {
+        if (await gameLogic.isCheckmate(boardState, opponent)) {
             setGameStatus(`Checkmate! ${player.charAt(0).toUpperCase() + player.slice(1)} wins!`);
             soundService.playSound('game-over');
             return true;
         }
-        if (gameLogic.isStalemate(boardState, opponent)) {
+        if (await gameLogic.isStalemate(boardState, opponent)) {
             setGameStatus(`Stalemate! ${player.charAt(0).toUpperCase() + player.slice(1)} wins!`);
             soundService.playSound('game-over');
             return true;
@@ -163,7 +163,7 @@ const App: React.FC = () => {
         }
 
         const kingPos = gameLogic.getKingPosition(boardState, opponent);
-        if (kingPos && gameLogic.isKingInCheck(boardState, opponent)) {
+        if (kingPos && await gameLogic.isKingInCheck(boardState, opponent)) {
             setKingInCheckPos(kingPos);
             setGameStatus(`${opponent.charAt(0).toUpperCase() + opponent.slice(1)} is in check`);
             soundService.playSound('check');
@@ -174,7 +174,7 @@ const App: React.FC = () => {
         return false;
     }, [history]);
 
-    const movePiece = useCallback((from: Position, to: Position) => {
+    const movePiece = useCallback(async (from: Position, to: Position) => {
         const pieceToMove = board[from.row][from.col];
         if (!pieceToMove) return;
 
@@ -212,7 +212,7 @@ const App: React.FC = () => {
 
         const nextPlayer = currentPlayer === Player.WHITE ? Player.BLACK : Player.WHITE;
 
-        const isGameOverAfterUpdate = updateGameStatus(newBoard, currentPlayer);
+        const isGameOverAfterUpdate = await updateGameStatus(newBoard, currentPlayer);
 
         if (!isGameOverAfterUpdate) {
             setCurrentPlayer(nextPlayer);
@@ -234,7 +234,7 @@ const App: React.FC = () => {
         setHistory(prev => [...prev, JSON.stringify(newBoard)]);
     }, [board, currentPlayer, updateGameStatus, capturedPieces, gameSettings, timers, history, moveHistory]);
 
-    const handleSquareClick = useCallback((pos: Position) => {
+    const handleSquareClick = useCallback(async (pos: Position) => {
         if (gameStatus.includes('wins') || gameStatus.includes('Draw')) return;
         if (currentPlayer === gameSettings?.aiColor) return; // Don't allow player to move for AI
 
@@ -243,25 +243,30 @@ const App: React.FC = () => {
         if (selectedPiece) {
             const isValidMove = validMoves.some(m => m.row === pos.row && m.col === pos.col);
             if (isValidMove) {
-                movePiece(selectedPiece, pos);
+                await movePiece(selectedPiece, pos);
             } else {
                 setSelectedPiece(null);
                 setValidMoves([]);
             }
         } else if (piece && piece.player === currentPlayer) {
             setSelectedPiece(pos);
-            setValidMoves(gameLogic.getValidMoves(piece, pos, board));
+            const moves = await gameLogic.getValidMoves(piece, pos, board);
+            setValidMoves(moves);
         }
     }, [board, currentPlayer, selectedPiece, validMoves, gameStatus, movePiece, gameSettings]);
 
     // AI Move logic
     useEffect(() => {
         if (gameSettings && currentPlayer === gameSettings.aiColor && !gameStatus.includes('wins') && !gameStatus.includes('Draw')) {
-            setTimeout(() => {
-                const bestMove = ai.findBestMove(board, gameSettings.aiDepth, gameSettings.aiColor!);
+            const getAiMove = async () => {
+                const bestMove = await ai.findBestMove(board, gameSettings.aiDepth, gameSettings.aiColor!);
                 if (bestMove) {
-                    movePiece(bestMove.from, bestMove.to);
+                    await movePiece(bestMove.from, bestMove.to);
                 }
+            };
+
+            setTimeout(() => {
+                getAiMove().catch(console.error);
             }, 500); // Small delay for user to see the move
         }
     }, [currentPlayer, gameSettings, board, movePiece, gameStatus]);

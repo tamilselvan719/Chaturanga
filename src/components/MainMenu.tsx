@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameSettings, PlayerColorChoice, Difficulty, TimeOption, IncrementOption } from '../types';
 import { unlockAudio } from '../services/soundService';
 
@@ -9,10 +9,42 @@ interface MainMenuProps {
 }
 
 const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onShowHelp }) => {
-  const [playerChoice, setPlayerChoice] = useState<PlayerColorChoice>('random');
-  const [difficulty, setDifficulty] = useState<Difficulty>('Medium');
-  const [time, setTime] = useState<TimeOption>(10);
-  const [increment, setIncrement] = useState<IncrementOption>(5);
+  const [initialSettings] = useState(() => {
+    try {
+      const savedSettings = localStorage.getItem('chaturangaSettings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        return {
+          playerChoice: parsed.playerChoice || 'random',
+          difficulty: parsed.difficulty || 'Medium',
+          time: parsed.time === 'unlimited' ? 'unlimited' : Number(parsed.time) || 10,
+          increment: Number(parsed.increment) || 5,
+        };
+      }
+    } catch (error) {
+      console.error("Failed to parse settings from localStorage", error);
+    }
+    return {
+      playerChoice: 'random' as PlayerColorChoice,
+      difficulty: 'Medium' as Difficulty,
+      time: 10 as TimeOption,
+      increment: 5 as IncrementOption,
+    };
+  });
+
+  const [playerChoice, setPlayerChoice] = useState<PlayerColorChoice>(initialSettings.playerChoice);
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialSettings.difficulty);
+  const [time, setTime] = useState<TimeOption>(initialSettings.time);
+  const [increment, setIncrement] = useState<IncrementOption>(initialSettings.increment);
+
+  useEffect(() => {
+    try {
+      const settings = { playerChoice, difficulty, time, increment };
+      localStorage.setItem('chaturangaSettings', JSON.stringify(settings));
+    } catch (error) {
+      console.error("Failed to save settings to localStorage", error);
+    }
+  }, [playerChoice, difficulty, time, increment]);
 
   const handleStart = () => {
     unlockAudio();
